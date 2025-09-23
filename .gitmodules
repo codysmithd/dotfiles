@@ -1,0 +1,9 @@
+[submodule "third_party/powerlevel10k"]
+	path = third_party/powerlevel10k
+	url = https://github.com/romkatv/powerlevel10k.git
+[submodule "third_party/zsh-defer"]
+	path = third_party/zsh-defer
+	url = https://github.com/romkatv/zsh-defer.git
+[submodule "third_party/zsh-syntax-highlighting"]
+	path = third_party/zsh-syntax-highlighting
+	url = https://github.com/zsh-users/zsh-syntax-highlighting.git
