@@ -1,18 +1,6 @@
-#!/bin/bash
-set -e
+#!/usr/bin/env zsh
 
-error_exit() {
-  echo -e "\n${RED}ERROR:${RESET} $1" >&2
-  exit 1
-}
-
-if ! command -v tput &>/dev/null; then
-  error_exit "tput command not found, but is required for this script."
-fi
-
-GREEN=$(tput setaf 2)
-RED=$(tput setaf 1)
-RESET=$(tput sgr0)
+source "${0:A:h:h}/zsh/.zshrc.d/logging.zsh"
 
 main() {
   # Determine the destination directory based on the OS
@@ -26,45 +14,45 @@ main() {
       mkdir -p "$dest_dir"
       ;;
     *)
-      error_exit "Unsupported OS: $(uname)"
+      _dotfiles_report_error "Unsupported OS: $(uname)" && exit 1
       ;;
   esac
 
-  printf "Installing fonts..."
+  _dotfiles_announce "Installing fonts"
 
   local copied_fonts=()
-  local font_file
-  while IFS= read -r -d '' font_file; do
-    local font_name
-    font_name=$(basename "$font_file")
+  local script_dir=${0:A:h}
+  for font_file in "$script_dir"/**/*.ttf(.N); do
+    local font_name=${font_file:t} # basename
     local dest_file="$dest_dir/$font_name"
-    if [ ! -f "$dest_file" ]; then
+    if [[ ! -f "$dest_file" ]]; then
       if ! cp "$font_file" "$dest_dir"; then
-        error_exit "Failed to copy $font_file to $dest_dir"
+        _dotfiles_report_error "Failed to copy $font_file to $dest_dir" && exit 1
       fi
       copied_fonts+=("$font_name")
     fi
-  done < <(find "$(dirname "$0")" -type f -name "*.ttf" -print0)
+  done
 
-  # Update font cache on Linux if fonts were copied
-  if [[ "$(uname)" == "Linux" ]] && [ ${#copied_fonts[@]} -gt 0 ]; then
-    if ! command -v fc-cache &>/dev/null; then
-      error_exit "fc-cache command not found, but is required to update the font cache."
-    fi
-    if ! fc-cache -f; then
-      error_exit "fc-cache -f failed."
-    fi
-  fi
-
-  if [ ${#copied_fonts[@]} -gt 0 ]; then
-    printf "${GREEN}Done${RESET}.\n"
-    echo "Installed ${#copied_fonts[@]} new font(s):"
+  if (( #copied_fonts )); then
+    _dotfiles_report_success "${#copied_fonts[@]} new font(s) installed."
     for font in "${copied_fonts[@]}"; do
-      echo "  - $font"
+      print "  - $font"
     done
   else
-    printf "${GREEN}Done${RESET}. (up to date)\n"
+    _dotfiles_report_success "(up to date)"
   fi
-  exit 0
+
+  # Update font cache on Linux if fonts were copied
+  if [[ "$(uname)" == "Linux" ]] && (( #copied_fonts )); then
+    _dotfiles_announce "Updating font cache"
+    if ! command -v fc-cache &>/dev/null; then
+      _dotfiles_report_error "fc-cache command not found, but is required to update the font cache." && exit 1
+    fi
+    if ! fc-cache -f; then
+      _dotfiles_report_error "fc-cache -f failed." && exit 1
+    fi
+    _dotfiles_report_success ""
+  fi
 }
+
 main "$@"
