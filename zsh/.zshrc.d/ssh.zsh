@@ -1,3 +1,5 @@
+#!/usr/bin/env zsh
+
 # SSH function to auto-copy public key on the first connection.
 ssh() {
     local ssh_bin="/usr/bin/ssh"

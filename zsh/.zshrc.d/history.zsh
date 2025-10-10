@@ -1,3 +1,5 @@
+#!/usr/bin/env zsh
+
 # Option to make pressing up and down arrow keys searches history with what's been typed.
 autoload -U history-search-end
 zle -N history-beginning-search-backward-end history-search-end
