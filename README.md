@@ -16,10 +16,6 @@ The included script automates the entire process, and is idempotent.
     ./install.sh
     ```
 
-## Requirements
-
-*   [GNU Stow](https://www.gnu.org/software/stow/)
-
 ## Submodules
 
 Contains the following submodules in `third_party/` to be batteries-included:

@@ -4,7 +4,7 @@ set -e
 main() {
   source ./zsh/.zshrc.d/update.zsh
   _dotfiles_update_submodules
-  _dotfiles_stow
+  _dotfiles_setup_zshrc
   
   ./fonts/install.sh
 }

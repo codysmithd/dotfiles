@@ -1,4 +1,5 @@
-_third_party="${${(%):-%x}:A:h:h}/third_party"
+local current_dir="${${(%):-%x}:A:h}"
+_third_party="${current_dir:h}/third_party"
 
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
 # Initialization code that may require console input (password prompts, [y/n]
@@ -12,14 +13,21 @@ source "${_third_party}/zsh-defer/zsh-defer.plugin.zsh"
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 source "${_third_party}/powerlevel10k/powerlevel10k.zsh-theme"
-source "$HOME/.p10k.zsh"
+source "${current_dir}/.p10k.zsh"
 
-# Source all files in .zshrc.d
-for file in $HOME/.zshrc.d/*.zsh(N); do
-  source "$file"
-done
+# Function to source all .zsh files in a directory
+_dotfiles_source_dir() {
+  local dir="$1"
+  local file
+  for file in "$dir"/*.zsh(N); do
+    [[ -f "$file" ]] && source "$file"
+  done
+}
 
-# zsh-syntax-highlighting
+# Source configs
+_dotfiles_source_dir "$current_dir/.zshrc.d"
+
+# Zsh syntax highlighting (defered)
 zsh-defer source "${_third_party}/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
 
 unset _third_party

@@ -26,34 +26,35 @@ _dotfiles_update_submodules() {
   fi
 }
 
-_dotfiles_stow() {
-  _dotfiles_announce "Stowing zsh to ${HOME}"
-  if ! command -v stow &>/dev/null; then
-    _dotfiles_report_error "Stow not found, please install it."
-    return 1
+_dotfiles_setup_zshrc() {
+  _dotfiles_announce "Setting up .zshrc"
+  local current_dir="${${(%):-%x}:A:h}"
+  local zsh_dir="${current_dir:h}"
+  
+  local source_line="source $zsh_dir/.zshrc"
+  
+  # Append if not already present.
+  if [[ ! -f "$HOME/.zshrc" ]] || ! grep -Fxq "$source_line" "$HOME/.zshrc"; then
+    echo "$source_line" >> "$HOME/.zshrc"
   fi
+  
+  _dotfiles_report_success
+}
 
-  if stow_output=$(stow -v -t "$HOME" zsh 2>&1); then
-    # Check if it actually did anything.
-    if [ -n "$stow_output" ]; then
-      _dotfiles_report_success
-      echo "$stow_output" | sed 's/^/  /'
-    else
-      _dotfiles_report_success "(up to date)"
-    fi
-  else
-    _dotfiles_report_error "Stow command failed."
-    echo "$stow_output" | sed 's/^/  /' # Show stow's error output.
-    return 1
-  fi
+_dotfiles_update_path() {
+  local target_dir="$1"
+  (
+    cd "$target_dir" || return 1
+    _dotfiles_update_repo
+    _dotfiles_update_submodules
+  )
 }
 
 # In interactive shells, (.zshrc sourcing .zshrc.d/) run automatically in the background to auto-update.
 if [[ -o interactive ]]; then
     (
-        cd ${${(%):-%x}:A:h:h:h} # (Absolute) repo root directory.
-        _dotfiles_update_repo
-        _dotfiles_update_submodules
-        _dotfiles_stow
+        local repo_root="${${(%):-%x}:A:h:h:h}"
+        _dotfiles_update_path "$repo_root"
+        _dotfiles_link
     ) &>/dev/null &!
 fi
